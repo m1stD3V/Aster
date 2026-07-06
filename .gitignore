@@ -1,5 +1,6 @@
 node_modules
 dist
+widget-out
 .env
 .env.local
 *.local

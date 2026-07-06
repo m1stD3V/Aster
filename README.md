@@ -36,6 +36,24 @@ The repo ships a workflow at `.github/workflows/deploy.yml`. One-time setup:
 
 The workflow tests, lints, builds with the correct `--base` path for project pages, and deploys `dist/`. It intentionally provides no token; the deployed site runs on the anonymous source.
 
+## Embed your galaxy in your profile README
+
+READMEs cannot run scripts or iframes, but they do render animated SVGs. The repo ships three ways to embed, from liveliest to simplest:
+
+1. **Animated SVG widget (recommended).** The `Refresh galaxy widget` workflow renders your galaxy as a self-contained animated SVG (orbits actually move) plus a PNG snapshot of the 3D scene, and pushes both to a `galaxy-image` branch every Monday. Run it once from the Actions tab, then paste this into your profile README, replacing OWNER and REPO:
+
+   ```md
+   [![My GitHub Galaxy](https://raw.githubusercontent.com/OWNER/REPO/galaxy-image/galaxy.svg)](https://OWNER.github.io/REPO/?u=OWNER)
+   ```
+
+   Swap `galaxy.svg` for `galaxy.png` if you prefer the 3D render as a still.
+
+2. **Save image button.** On the site, chart any account and press "Save image": you get a PNG of the current view and ready-to-paste embed markdown on your clipboard.
+
+3. **Live iframe (for personal sites, not READMEs).** `?u=<login>&snap` renders a clean, HUD-free galaxy that you can drop into an iframe anywhere iframes are allowed.
+
+URL parameters: `?u=<login>` deep-links to a profile; `&snap` hides the interface for captures and embeds.
+
 ## How the mapping works
 
 Every visual maps to a real metric. A repository is a planet: its size follows stars (log scaled and normalized against your own top repo, so small profiles still read well), its tint is GitHub's color for the primary language, moons are forks, and rings appear on highly starred repos. Orbit distance follows repo age, newest close in, so the system reads chronologically from the center outward, and each planet traces a faint orbit guide. The central star is you: its size and glow follow followers. Forked and archived repos are excluded by default, and only the top 60 repos become full planets; the rest render as faint distant specks. A lone survey probe cruises the system on a seeded route; it means nothing and stays anyway.

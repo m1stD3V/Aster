@@ -1,8 +1,38 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { formatCount } from '../lib/format';
 import { useGalaxyStore } from '../state/store';
 import { Legend } from './Legend';
 import { RepoPanel } from './RepoPanel';
+
+/**
+ * Grab the rendered canvas as a PNG download and put ready-to-paste
+ * embed markdown on the clipboard. Works because the Canvas runs with
+ * preserveDrawingBuffer enabled.
+ */
+async function saveSnapshot(login: string): Promise<string> {
+  const canvas = document.querySelector<HTMLCanvasElement>('.app canvas');
+  if (!canvas) return 'Could not find the canvas.';
+
+  const filename = `github-galaxy-${login}.png`;
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+
+  const link = `${location.origin}${location.pathname}?u=${encodeURIComponent(login)}`;
+  const markdown = `[![${login}'s GitHub Galaxy](./${filename})](${link})`;
+  try {
+    await navigator.clipboard.writeText(markdown);
+    return 'Image saved. Embed markdown copied to your clipboard.';
+  } catch {
+    return 'Image saved.';
+  }
+}
 
 /** DOM overlay: crisp text over the canvas, anchored to the corners. */
 export function HUD() {
@@ -16,10 +46,21 @@ export function HUD() {
   const dismissMessage = useGalaxyStore((s) => s.dismissMessage);
   const selectedRepoId = useGalaxyStore((s) => s.selectedRepoId);
   const [username, setUsername] = useState('');
+  const [snapNote, setSnapNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!snapNote) return;
+    const timer = setTimeout(() => setSnapNote(null), 5000);
+    return () => clearTimeout(timer);
+  }, [snapNote]);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (username.trim()) void loadProfile(username);
+  };
+
+  const onSnapshot = () => {
+    void saveSnapshot(profile.login).then(setSnapNote);
   };
 
   const repoCount = profile.repos.filter((r) => !r.isFork && !r.isArchived).length;
@@ -56,7 +97,16 @@ export function HUD() {
           <button className="hud-button" type="submit" disabled={status === 'loading'}>
             {status === 'loading' ? 'Charting...' : 'Chart'}
           </button>
+          <button
+            className="hud-button"
+            type="button"
+            onClick={onSnapshot}
+            title="Download this view as a PNG"
+          >
+            Save image
+          </button>
         </form>
+        {snapNote && <p className="hud-note">{snapNote}</p>}
         {message && (
           <button className="hud-message" type="button" onClick={dismissMessage}>
             {message}

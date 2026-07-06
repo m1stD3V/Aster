@@ -1,6 +1,6 @@
 import { Html, Trail, useCursor } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { orbitPoint } from '../lib/math';
 import { range, rngFromString } from '../lib/prng';
@@ -56,6 +56,15 @@ export function Voyager() {
       bob: range(rng, 0.4, 1),
     };
   }, [galaxy]);
+
+  // Trail samples the ship's world position from its first frame; without
+  // this the initial buffer anchors at the origin and draws a stray line
+  // from the star until it decays.
+  useLayoutEffect(() => {
+    const g = group.current;
+    if (!g) return;
+    orbitPoint(path.a, path.b, path.phase, path.inclination, g.position);
+  }, [path]);
 
   useFrame((state) => {
     const g = group.current;

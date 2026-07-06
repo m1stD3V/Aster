@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "widget": "rolldown scripts/generate-svg.ts --platform node --format esm --file widget-out/generate-svg.mjs && node widget-out/generate-svg.mjs"
   },
   "dependencies": {
     "@react-three/drei": "10.7.7",
