@@ -1,0 +1,453 @@
+/* Palette tokens (style bible). The 3D scene owns its own colors;
+   these drive the HUD only. */
+:root {
+  --bg-top: #05060a;
+  --bg-bottom: #0a0e1a;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8b93a7;
+  --accent: #5eead4;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --panel-bg: rgba(10, 14, 26, 0.72);
+  --font-sans: Inter, 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+.app {
+  position: fixed;
+  inset: 0;
+}
+
+.app canvas {
+  display: block;
+}
+
+/* HUD overlay: the container ignores the pointer, corners re-enable it. */
+.hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hud-corner {
+  position: absolute;
+  pointer-events: auto;
+  max-width: min(340px, calc(100vw - 48px));
+}
+
+.hud-top-left {
+  top: 28px;
+  left: 32px;
+}
+
+.hud-top-right {
+  top: 28px;
+  right: 32px;
+  text-align: right;
+}
+
+.hud-bottom-left {
+  bottom: 28px;
+  left: 32px;
+}
+
+.hud-bottom-right {
+  bottom: 28px;
+  right: 32px;
+}
+
+.hud-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.hud-login {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.hud-stats {
+  margin: 10px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.hud-note {
+  margin: 10px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.hud-note-action {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-align: left;
+}
+
+.hud-note-action:hover {
+  color: var(--accent);
+}
+
+/* Controls hint, bottom center */
+
+.hud-hint {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  animation: fade-in-caption 1.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hud-form {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.hud-input {
+  background: var(--panel-bg);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 12px;
+  width: 190px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.hud-input:focus {
+  border-color: var(--accent);
+}
+
+.hud-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.hud-button {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 8px 14px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+.hud-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(94, 234, 212, 0.06);
+}
+
+.hud-button:disabled {
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.hud-message {
+  display: block;
+  margin: 12px 0 0 auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 10px 14px;
+  text-align: left;
+  max-width: 300px;
+  animation: fade-in 0.4s ease;
+}
+
+/* Legend */
+
+.legend {
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 280px;
+  animation: fade-in 0.4s ease;
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.legend-title {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.legend-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.legend-close:hover {
+  color: var(--text-primary);
+}
+
+.legend-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.legend-glyph {
+  flex: 0 0 20px;
+  height: 20px;
+  margin-top: 1px;
+}
+
+.legend-glyph svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.legend-row-title {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.legend-row-text {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.legend-toggle {
+  width: auto;
+}
+
+/* Repo panel */
+
+.repo-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 16px 18px;
+  width: 300px;
+  animation: fade-in 0.35s ease;
+}
+
+.repo-panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.repo-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.repo-description {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.repo-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+.repo-stats dt {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.repo-stats dd {
+  margin: 3px 0 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.language-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+/* Floating planet label (rendered by drei Html) */
+
+.planet-label {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Young-system caption */
+
+.hud-caption {
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  font-style: italic;
+  animation: fade-in 1.2s ease;
+}
+
+/* Scene error fallback */
+
+.scene-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 6px;
+}
+
+.scene-fallback-sub {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The caption keeps its centering transform. */
+.hud-caption {
+  animation-name: fade-in-caption;
+}
+
+@keyframes fade-in-caption {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch and small screens: tighten margins, keep panels on-screen. */
+@media (max-width: 640px) {
+  .hud-top-left,
+  .hud-bottom-left {
+    left: 16px;
+  }
+  .hud-top-right,
+  .hud-bottom-right {
+    right: 16px;
+  }
+  .hud-top-left,
+  .hud-top-right {
+    top: 16px;
+  }
+  .hud-bottom-left,
+  .hud-bottom-right {
+    bottom: 16px;
+  }
+  .hud-input {
+    width: 140px;
+  }
+  .legend {
+    width: 210px;
+  }
+  .repo-panel {
+    width: min(300px, calc(100vw - 32px));
+  }
+}
