@@ -5,18 +5,21 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { PlanetParams } from '../data/mapping';
 import { orbitPoint } from '../lib/math';
+import { rngFromString, xfnv1a } from '../lib/prng';
 import { useGalaxyStore } from '../state/store';
 import { useMotionScale } from '../hooks/useReducedMotion';
+import { createPlanetMaterial } from './materials';
+import { radialRingGeometry, ringTexture } from './textures';
 
 /**
  * Shared unit geometries, scaled per instance. Created once for the app's
  * lifetime and passed by reference, so 60 planets cost 2 geometries.
  * R3F does not dispose externally created objects, which is what we want here.
  */
-const UNIT_SPHERE = new THREE.SphereGeometry(1, 32, 32);
+const UNIT_SPHERE = new THREE.SphereGeometry(1, 48, 48);
 const MOON_SPHERE = new THREE.SphereGeometry(1, 12, 12);
 const MOON_MATERIAL = new THREE.MeshStandardMaterial({
-  color: '#7E8698',
+  color: '#8A8F9C',
   roughness: 1,
   metalness: 0,
 });
@@ -32,7 +35,7 @@ interface PlanetProps {
   params: PlanetParams;
 }
 
-/** One repository: sphere plus optional ring, moons, orbit guide, and motion. */
+/** One repository: shader-surfaced sphere plus ring, moons, orbit guide. */
 export function Planet({ params }: PlanetProps) {
   const group = useRef<THREE.Group>(null);
   const body = useRef<THREE.Mesh>(null);
@@ -44,18 +47,39 @@ export function Planet({ params }: PlanetProps) {
   const selected = useGalaxyStore((s) => s.selectedRepoId === params.repoId);
   const motionScale = useMotionScale();
 
-  // Language tint over the slate base: enough color to identify the
-  // language, desaturated enough to stay in the palette.
-  const { surfaceColor, emissiveColor, ringColor, atmosphereColor } = useMemo(() => {
+  // Ringed and large planets read as gas giants (banded), small ones as
+  // rocky worlds. The seed varies the pattern per repo, deterministically.
+  const material = useMemo(() => {
     const tint = new THREE.Color(params.color);
+    return createPlanetMaterial({
+      seed: (xfnv1a(params.repoId) % 1000) / 10,
+      baseColor: new THREE.Color(SLATE_BASE).lerp(tint, 0.4),
+      tint,
+      atmosphere: tint.clone().lerp(new THREE.Color('#AFC4E8'), 0.45),
+      banded: params.ring ? 1 : params.radius > 0.95 ? 0.8 : 0,
+    });
+  }, [params.repoId, params.color, params.ring, params.radius]);
+  useEffect(() => () => material.dispose(), [material]);
+
+  const ringColor = useMemo(
+    () => new THREE.Color(params.color).lerp(new THREE.Color('#8B93A7'), 0.35),
+    [params.color],
+  );
+
+  const ringAssets = useMemo(() => {
+    if (!params.ring) return null;
     return {
-      surfaceColor: new THREE.Color(SLATE_BASE).lerp(tint, 0.45),
-      emissiveColor: tint.clone().multiplyScalar(0.55),
-      // Rings drift toward slate so saturated language colors stay quiet.
-      ringColor: tint.clone().lerp(new THREE.Color('#8B93A7'), 0.4),
-      atmosphereColor: tint.clone().lerp(new THREE.Color('#AFC4E8'), 0.4),
+      geometry: radialRingGeometry(params.ring.innerRadius, params.ring.outerRadius),
+      texture: ringTexture(rngFromString(`${params.repoId}:ring`)),
     };
-  }, [params.color]);
+  }, [params.ring, params.repoId]);
+  useEffect(
+    () => () => {
+      ringAssets?.geometry.dispose();
+      ringAssets?.texture.dispose();
+    },
+    [ringAssets],
+  );
 
   // Faint orbit guide traced with the exact ellipse the planet flies,
   // so the system reads as structure instead of scattered bodies.
@@ -75,6 +99,8 @@ export function Planet({ params }: PlanetProps) {
   }, [params.orbitA, params.orbitB, params.inclination]);
   useEffect(() => () => orbitGeometry.dispose(), [orbitGeometry]);
 
+  const emphasized = hovered || selected;
+
   useFrame((state, delta) => {
     const g = group.current;
     const b = body.current;
@@ -89,6 +115,7 @@ export function Planet({ params }: PlanetProps) {
     b.rotation.y += params.spinSpeed * delta * motionScale;
     const targetScale = params.radius * (hovered ? HOVER_SCALE : 1);
     easing.damp3(b.scale, [targetScale, targetScale, targetScale], 0.15, delta);
+    easing.damp(material.uniforms.uEmphasis, 'value', emphasized ? 1 : 0, 0.2, delta);
 
     for (let i = 0; i < params.moons.length; i++) {
       const moon = moonRefs.current[i];
@@ -103,8 +130,6 @@ export function Planet({ params }: PlanetProps) {
       );
     }
   });
-
-  const emphasized = hovered || selected;
 
   return (
     <>
@@ -131,39 +156,20 @@ export function Planet({ params }: PlanetProps) {
           }}
           onPointerOut={() => setHovered(false)}
           geometry={UNIT_SPHERE}
-        >
-          <meshStandardMaterial
-            color={surfaceColor}
-            emissive={emissiveColor}
-            emissiveIntensity={params.emissiveIntensity * (emphasized ? 2 : 1)}
-            roughness={0.78}
-            metalness={0.08}
-          />
-        </mesh>
+          material={material}
+        />
 
-        {/* Soft additive shell: a hint of atmosphere so the silhouette
-            does not end in a hard edge. */}
-        <mesh scale={params.radius * 1.14} geometry={UNIT_SPHERE} raycast={NO_RAYCAST}>
-          <meshBasicMaterial
-            color={atmosphereColor}
-            transparent
-            opacity={0.055}
-            side={THREE.BackSide}
-            blending={THREE.AdditiveBlending}
-            depthWrite={false}
-          />
-        </mesh>
-
-        {params.ring && (
+        {params.ring && ringAssets && (
           <mesh
             rotation={[Math.PI / 2 + params.ring.inclination, 0, 0]}
             raycast={NO_RAYCAST}
           >
-            <ringGeometry args={[params.ring.innerRadius, params.ring.outerRadius, 64]} />
+            <primitive object={ringAssets.geometry} attach="geometry" />
             <meshBasicMaterial
+              map={ringAssets.texture}
               color={ringColor}
               transparent
-              opacity={params.ring.opacity}
+              opacity={Math.min(0.85, params.ring.opacity * 2.4)}
               side={THREE.DoubleSide}
               depthWrite={false}
             />
