@@ -409,6 +409,49 @@ body {
   gap: 6px;
 }
 
+/* Flight mission overlay */
+
+.flight-hud {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 22px;
+  padding: 10px 22px;
+  background: var(--panel-bg);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  font-family: var(--font-mono);
+  animation: fade-in 0.4s ease;
+}
+
+.flight-stat {
+  color: #ffd27f;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+}
+
+.flight-clock {
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.flight-login {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mission-card .mission-score {
+  margin: 14px 0 0;
+  font-family: var(--font-mono);
+  font-size: 44px;
+  color: #ffd27f;
+  letter-spacing: 0.04em;
+}
+
 /* Landing overlay */
 
 .intro {

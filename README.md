@@ -54,6 +54,10 @@ READMEs cannot run scripts or iframes, but they do render animated SVGs. The rep
 
 URL parameters: `?u=<login>` deep-links to a profile; `&snap` hides the interface for captures and embeds.
 
+## Fly a mission
+
+"fly a mission" hands you Discovery for 90 seconds. Golden stardust motes cluster around planets, and the size of each field follows that repo's recent push activity: an actively developed repo is a rich harvest, a dormant one is barren. Steer with WASD or the arrow keys, hold Shift to boost, press Escape to end early. Your personal best and a cumulative survey atlas (which worlds you have ever visited) are saved locally per profile. The loop is honest: the only way to raise your score ceiling is to ship more code. A keyboard is required to fly; the observatory works everywhere.
+
 ## How the mapping works
 
 Every visual maps to a real metric. A repository is a planet: its size follows stars (log scaled and normalized against your own top repo, so small profiles still read well), its tint is GitHub's color for the primary language, moons are forks, and rings appear on highly starred repos. Repos pushed within the last six months glow with city lights on their night side, fading as they go quiet. Orbit distance follows repo age, newest close in, and spacing adapts to each planet's rings and moons so neighbors never collide. The central star is you: its size and glow follow followers, and clicking it opens whole-profile stats. Forked and archived repos are excluded by default, and only the top 60 repos become full planets; the rest render as faint distant specks. Space Shuttle Discovery cruises the system on a seeded route; it measures nothing and stays anyway.

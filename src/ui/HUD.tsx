@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { formatCount } from '../lib/format';
 import { STAR_ID, useGalaxyStore } from '../state/store';
 import { Legend } from './Legend';
+import { FlightHUD, MissionResult } from './Mission';
 import { RepoPanel } from './RepoPanel';
 import { StarPanel } from './StarPanel';
 
@@ -117,6 +118,8 @@ export function HUD() {
   const loadMock = useGalaxyStore((s) => s.loadMock);
   const dismissMessage = useGalaxyStore((s) => s.dismissMessage);
   const selectedRepoId = useGalaxyStore((s) => s.selectedRepoId);
+  const flight = useGalaxyStore((s) => s.mode === 'flight');
+  const startMission = useGalaxyStore((s) => s.startMission);
   const [username, setUsername] = useState('');
   const [snapNote, setSnapNote] = useState<string | null>(null);
   const { touring, toggleTour } = useTour();
@@ -143,6 +146,9 @@ export function HUD() {
   };
 
   const repoCount = profile.repos.filter((r) => !r.isFork && !r.isArchived).length;
+
+  // A mission owns the whole overlay.
+  if (flight) return <FlightHUD />;
 
   return (
     <div className="hud">
@@ -222,9 +228,15 @@ export function HUD() {
           drag to orbit · scroll to zoom · click a planet ·{' '}
           <button className="hud-hint-button" type="button" onClick={toggleTour}>
             {touring ? 'stop the tour' : 'take the tour'}
+          </button>{' '}
+          ·{' '}
+          <button className="hud-hint-button" type="button" onClick={startMission}>
+            fly a mission
           </button>
         </p>
       )}
+
+      <MissionResult />
     </div>
   );
 }

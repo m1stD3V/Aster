@@ -1,6 +1,8 @@
+import { useGalaxyStore } from '../state/store';
 import { CameraRig } from './CameraRig';
 import { CentralStar } from './CentralStar';
 import { Effects } from './Effects';
+import { FlightController } from './FlightController';
 import { Meteors } from './Meteors';
 import { Nebula } from './Nebula';
 import { Planets } from './Planets';
@@ -12,6 +14,7 @@ import { Shuttle } from './Shuttle';
  * key light is inside CentralStar so it scales with the star.
  */
 export function Galaxy() {
+  const flight = useGalaxyStore((s) => s.mode === 'flight');
   return (
     <>
       {/* Soft cool fill so planet dark sides never go fully black. */}
@@ -23,7 +26,9 @@ export function Galaxy() {
       <Starfield />
       <CentralStar />
       <Planets />
-      <Shuttle />
+      {/* Discovery is either on autopilot or in the player's hands. */}
+      {!flight && <Shuttle />}
+      <FlightController />
       <Meteors />
 
       <Effects />

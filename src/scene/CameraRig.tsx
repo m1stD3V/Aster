@@ -25,6 +25,7 @@ export function CameraRig() {
   const controls = useRef<ControlsRef>(null);
   const galaxy = useGalaxyStore((s) => s.galaxy);
   const selectedRepoId = useGalaxyStore((s) => s.selectedRepoId);
+  const flight = useGalaxyStore((s) => s.mode === 'flight');
   const reducedMotion = useReducedMotion();
   const motionScale = useMotionScale();
 
@@ -57,7 +58,13 @@ export function CameraRig() {
     returning.current = true;
   }, [galaxy]);
 
+  // Ease home when a mission hands the camera back.
+  useEffect(() => {
+    if (!flight) returning.current = true;
+  }, [flight]);
+
   useFrame((state, delta) => {
+    if (flight) return;
     const c = controls.current;
     if (!c) return;
     const t = state.clock.elapsedTime;
@@ -112,6 +119,9 @@ export function CameraRig() {
     c.autoRotate =
       idle && !selectedPlanet && !starFocused && !returning.current && !reducedMotion;
   });
+
+  // Flight mode owns the camera; unmount the controls entirely.
+  if (flight) return null;
 
   return (
     <OrbitControls
