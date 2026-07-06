@@ -4,7 +4,7 @@ import { Effects } from './Effects';
 import { Nebula } from './Nebula';
 import { Planets } from './Planets';
 import { Starfield } from './Starfield';
-import { Voyager } from './Voyager';
+import { Shuttle } from './Shuttle';
 
 /**
  * Scene root: a pure function of store state. Lights live here; the warm
@@ -22,7 +22,7 @@ export function Galaxy() {
       <Starfield />
       <CentralStar />
       <Planets />
-      <Voyager />
+      <Shuttle />
 
       <Effects />
       <CameraRig />

@@ -66,9 +66,13 @@ const GLYPHS: Record<string, ReactNode> = {
       />
     </svg>
   ),
-  probe: (
+  shuttle: (
     <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M10 4 L13 13 L10 11 L7 13 Z" fill="#5eead4" opacity="0.9" />
+      <path
+        d="M10 2.5 L11.3 8 L15.5 13.5 L11.2 12.2 L11.2 14.5 L12.8 16.5 L7.2 16.5 L8.8 14.5 L8.8 12.2 L4.5 13.5 L8.7 8 Z"
+        fill="#e8eaf0"
+        opacity="0.92"
+      />
     </svg>
   ),
 };
@@ -110,7 +114,7 @@ const ROWS: LegendRow[] = [
     title: 'Distance is age',
     text: 'New repos orbit close to the star; old ones drift far out.',
   },
-  { glyph: 'probe', title: 'The probe', text: 'Just passing through.' },
+  { glyph: 'shuttle', title: 'The shuttle', text: 'Discovery, out surveying the system.' },
 ];
 
 /** Small dismissible key explaining the metric-to-visual mapping. */

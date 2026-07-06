@@ -138,6 +138,7 @@ body {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
 .hud-input {
@@ -373,6 +374,156 @@ body {
   letter-spacing: 0.08em;
   font-style: italic;
   animation: fade-in 1.2s ease;
+}
+
+/* Landing overlay */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(5, 6, 10, 0.35),
+    rgba(5, 6, 10, 0.78)
+  );
+  backdrop-filter: blur(6px);
+  opacity: 1;
+  transition: opacity 0.65s ease;
+}
+
+.intro-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-card {
+  max-width: 560px;
+  text-align: center;
+  padding: 44px 40px 32px;
+  background: rgba(10, 14, 26, 0.55);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  animation: intro-rise 0.9s ease;
+}
+
+.intro-eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.intro-title {
+  margin: 18px 0 0;
+  font-size: 38px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+}
+
+.intro-sub {
+  margin: 16px auto 0;
+  max-width: 460px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.intro-form {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.intro-input {
+  width: 240px;
+  font-size: 14px;
+  padding: 11px 14px;
+}
+
+.intro-button {
+  background: rgba(94, 234, 212, 0.1);
+  border: 1px solid rgba(94, 234, 212, 0.45);
+  border-radius: 6px;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 550;
+  padding: 11px 20px;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.intro-button:hover {
+  background: rgba(94, 234, 212, 0.2);
+  border-color: var(--accent);
+}
+
+.intro-skip {
+  display: block;
+  margin: 18px auto 0;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(255, 255, 255, 0.2);
+}
+
+.intro-skip:hover {
+  color: var(--text-primary);
+}
+
+.intro-foot {
+  margin: 26px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.intro-foot a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.intro-foot a:hover {
+  text-decoration: underline;
+}
+
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .intro-title {
+    font-size: 28px;
+  }
+  .intro-card {
+    padding: 32px 22px 24px;
+  }
 }
 
 /* Scene error fallback */

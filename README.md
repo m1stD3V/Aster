@@ -56,7 +56,7 @@ URL parameters: `?u=<login>` deep-links to a profile; `&snap` hides the interfac
 
 ## How the mapping works
 
-Every visual maps to a real metric. A repository is a planet: its size follows stars (log scaled and normalized against your own top repo, so small profiles still read well), its tint is GitHub's color for the primary language, moons are forks, and rings appear on highly starred repos. Orbit distance follows repo age, newest close in, so the system reads chronologically from the center outward, and each planet traces a faint orbit guide. The central star is you: its size and glow follow followers. Forked and archived repos are excluded by default, and only the top 60 repos become full planets; the rest render as faint distant specks. A lone survey probe cruises the system on a seeded route; it means nothing and stays anyway.
+Every visual maps to a real metric. A repository is a planet: its size follows stars (log scaled and normalized against your own top repo, so small profiles still read well), its tint is GitHub's color for the primary language, moons are forks, and rings appear on highly starred repos. Orbit distance follows repo age, newest close in, so the system reads chronologically from the center outward, and each planet traces a faint orbit guide. The central star is you: its size and glow follow followers. Forked and archived repos are excluded by default, and only the top 60 repos become full planets; the rest render as faint distant specks. Space Shuttle Discovery cruises the system on a seeded route; it measures nothing and stays anyway.
 
 Controls: drag to orbit, scroll to zoom, click a planet for details, click empty space to return. The camera drifts on its own after a few idle seconds.
 

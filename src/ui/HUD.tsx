@@ -34,6 +34,25 @@ async function saveSnapshot(login: string): Promise<string> {
   }
 }
 
+/** Native share sheet where available, deep-link copy everywhere else. */
+async function shareGalaxy(login: string): Promise<string> {
+  const url = `${location.origin}${location.pathname}?u=${encodeURIComponent(login)}`;
+  if (typeof navigator.share === 'function') {
+    try {
+      await navigator.share({ title: `${login}'s GitHub Galaxy`, url });
+      return '';
+    } catch {
+      return '';
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    return 'Link copied to your clipboard.';
+  } catch {
+    return `Share this link: ${url}`;
+  }
+}
+
 /** DOM overlay: crisp text over the canvas, anchored to the corners. */
 export function HUD() {
   const profile = useGalaxyStore((s) => s.profile);
@@ -63,6 +82,12 @@ export function HUD() {
     void saveSnapshot(profile.login).then(setSnapNote);
   };
 
+  const onShare = () => {
+    void shareGalaxy(profile.login).then((note) => {
+      if (note) setSnapNote(note);
+    });
+  };
+
   const repoCount = profile.repos.filter((r) => !r.isFork && !r.isArchived).length;
 
   return (
@@ -80,6 +105,14 @@ export function HUD() {
             back to the sample galaxy
           </button>
         )}
+        <a
+          className="hud-note hud-note-action"
+          href="https://github.com/m1stD3V/Aster"
+          target="_blank"
+          rel="noreferrer"
+        >
+          open source on GitHub
+        </a>
       </header>
 
       <div className="hud-corner hud-top-right">
@@ -104,6 +137,14 @@ export function HUD() {
             title="Download this view as a PNG"
           >
             Save image
+          </button>
+          <button
+            className="hud-button"
+            type="button"
+            onClick={onShare}
+            title="Share a link to this galaxy"
+          >
+            Share
           </button>
         </form>
         {snapNote && <p className="hud-note">{snapNote}</p>}
