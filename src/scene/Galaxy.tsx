@@ -1,6 +1,7 @@
 import { CameraRig } from './CameraRig';
 import { CentralStar } from './CentralStar';
 import { Effects } from './Effects';
+import { Meteors } from './Meteors';
 import { Nebula } from './Nebula';
 import { Planets } from './Planets';
 import { Starfield } from './Starfield';
@@ -23,6 +24,7 @@ export function Galaxy() {
       <CentralStar />
       <Planets />
       <Shuttle />
+      <Meteors />
 
       <Effects />
       <CameraRig />

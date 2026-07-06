@@ -21,6 +21,14 @@ const GLYPHS: Record<string, ReactNode> = {
       <circle cx="17" cy="10" r="2.4" fill="#f1e05a" />
     </svg>
   ),
+  lights: (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="6.5" fill="#1a2030" />
+      <circle cx="7.5" cy="9" r="0.9" fill="#ffc879" />
+      <circle cx="11" cy="12" r="0.7" fill="#ffc879" />
+      <circle cx="12.5" cy="8.5" r="0.6" fill="#ffc879" opacity="0.8" />
+    </svg>
+  ),
   moons: (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <circle cx="9" cy="11" r="4.5" fill="#8b93a7" />
@@ -98,6 +106,11 @@ const ROWS: LegendRow[] = [
     glyph: 'color',
     title: 'Color is language',
     text: "Each planet is tinted with its repo's main language.",
+  },
+  {
+    glyph: 'lights',
+    title: 'Night lights are activity',
+    text: 'Recently pushed repos glow with city lights on their dark side.',
   },
   {
     glyph: 'moons',

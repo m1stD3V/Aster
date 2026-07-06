@@ -57,8 +57,9 @@ export function Planet({ params }: PlanetProps) {
       tint,
       atmosphere: tint.clone().lerp(new THREE.Color('#AFC4E8'), 0.45),
       banded: params.ring ? 1 : params.radius > 0.95 ? 0.8 : 0,
+      activity: params.activity,
     });
-  }, [params.repoId, params.color, params.ring, params.radius]);
+  }, [params.repoId, params.color, params.ring, params.radius, params.activity]);
   useEffect(() => () => material.dispose(), [material]);
 
   const ringColor = useMemo(

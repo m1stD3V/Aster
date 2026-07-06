@@ -120,6 +120,47 @@ describe('buildGalaxy metric mapping', () => {
     expect(sandbox!.ring).toBeNull();
   });
 
+  it('spaces orbits so neighboring envelopes can never overlap', () => {
+    // Heavy repos with rings and full moon systems, worst case for spacing.
+    const repos = Array.from({ length: 12 }, (_, i) =>
+      makeRepo({
+        id: `heavy-${i}`,
+        stars: 5000 - i * 100,
+        forks: 900 - i * 10,
+        createdAt: `20${10 + i}-01-01T00:00:00Z`,
+      }),
+    );
+    const galaxy = buildGalaxy(makeProfile(repos), DEFAULT_MAPPING, FIXED_NOW);
+    const ordered = [...galaxy.planets].sort((a, b) => a.orbitA - b.orbitA);
+    for (let i = 1; i < ordered.length; i++) {
+      const gap = ordered[i].orbitA - ordered[i - 1].orbitA;
+      const required = ordered[i - 1].clearance + ordered[i].clearance;
+      expect(gap).toBeGreaterThanOrEqual(required);
+    }
+    // Clearance actually covers the widest visual feature.
+    for (const planet of ordered) {
+      if (planet.ring) {
+        expect(planet.clearance).toBeGreaterThanOrEqual(planet.ring.outerRadius);
+      }
+      const lastMoon = planet.moons[planet.moons.length - 1];
+      if (lastMoon) {
+        expect(planet.clearance).toBeGreaterThanOrEqual(lastMoon.orbitRadius);
+      }
+    }
+  });
+
+  it('maps push recency to activity', () => {
+    const profile = makeProfile([
+      makeRepo({ id: 'hot', stars: 10, pushedAt: '2026-06-25T00:00:00Z' }),
+      makeRepo({ id: 'cold', stars: 10, pushedAt: '2020-01-01T00:00:00Z' }),
+    ]);
+    const galaxy = buildGalaxy(profile, DEFAULT_MAPPING, FIXED_NOW);
+    const hot = galaxy.planets.find((p) => p.repoId === 'hot');
+    const cold = galaxy.planets.find((p) => p.repoId === 'cold');
+    expect(hot!.activity).toBeGreaterThan(0.9);
+    expect(cold!.activity).toBe(0);
+  });
+
   it('orbits newer repos closer to the star', () => {
     const profile = makeProfile([
       makeRepo({ id: 'ancient', stars: 10, createdAt: '2016-01-01T00:00:00Z' }),

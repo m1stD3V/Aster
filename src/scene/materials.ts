@@ -58,6 +58,7 @@ const PLANET_FRAGMENT = /* glsl */ `
   uniform float uSeed;
   uniform float uBanded;
   uniform float uEmphasis;
+  uniform float uActivity;
   varying vec3 vObjPos;
   varying vec3 vWorldNormal;
   varying vec3 vWorldPos;
@@ -98,6 +99,15 @@ const PLANET_FRAGMENT = /* glsl */ `
     // Faint identity glow so the language tint reads on the night side.
     lit += uTint * 0.04 * (1.0 + uEmphasis * 1.5);
 
+    // Recently pushed repos are inhabited: clustered city lights glow
+    // on the dark side, fading as the repo goes quiet.
+    if (uActivity > 0.01) {
+      float night = 1.0 - diff;
+      float cities = smoothstep(0.62, 0.9, fbm(sp * 16.0 + seedOff * 1.7));
+      cities *= smoothstep(0.35, 0.75, noise(sp * 40.0 + seedOff));
+      lit += vec3(1.0, 0.78, 0.45) * cities * night * uActivity * 0.9;
+    }
+
     gl_FragColor = vec4(lit, 1.0);
   }
 `;
@@ -135,6 +145,8 @@ export interface PlanetMaterialOptions {
   atmosphere: THREE.Color;
   /** 0 = rocky continents, 1 = full gas giant banding. */
   banded: number;
+  /** 0..1 recent-push recency; lights the night side. */
+  activity: number;
 }
 
 export function createPlanetMaterial(opts: PlanetMaterialOptions): THREE.ShaderMaterial {
@@ -148,6 +160,7 @@ export function createPlanetMaterial(opts: PlanetMaterialOptions): THREE.ShaderM
       uSeed: { value: opts.seed },
       uBanded: { value: opts.banded },
       uEmphasis: { value: 0 },
+      uActivity: { value: opts.activity },
     },
   });
 }

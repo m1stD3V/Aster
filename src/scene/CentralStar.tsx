@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useGalaxyStore } from '../state/store';
+import { STAR_ID, useGalaxyStore } from '../state/store';
 import { useMotionScale } from '../hooks/useReducedMotion';
 import { createSunMaterial } from './materials';
 import { hexWithAlpha, radialGradientTexture } from './textures';
@@ -53,7 +53,14 @@ export function CentralStar() {
 
   return (
     <group ref={group}>
-      <mesh ref={surface} onClick={() => selectRepo(null)} material={sunMaterial}>
+      <mesh
+        ref={surface}
+        onClick={(e) => {
+          e.stopPropagation();
+          selectRepo(STAR_ID);
+        }}
+        material={sunMaterial}
+      >
         <sphereGeometry args={[galaxy.starRadius, 64, 64]} />
       </mesh>
       <sprite scale={[coronaScale, coronaScale, 1]} raycast={() => null}>

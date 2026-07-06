@@ -4,7 +4,7 @@ import { easing } from 'maath';
 import { useEffect, useMemo, useRef, type ComponentRef } from 'react';
 import * as THREE from 'three';
 import { clamp, orbitPoint } from '../lib/math';
-import { useGalaxyStore } from '../state/store';
+import { STAR_ID, useGalaxyStore } from '../state/store';
 import { useMotionScale, useReducedMotion } from '../hooks/useReducedMotion';
 
 type ControlsRef = ComponentRef<typeof OrbitControls>;
@@ -33,9 +33,13 @@ export function CameraRig() {
     [galaxy, selectedRepoId],
   );
 
+  const starFocused = selectedRepoId === STAR_ID;
+
   // A young system frames tight and intimate; a large one pulls back to
   // take in the whole disc.
-  const homeDistance = galaxy.isYoungSystem ? 24 : clamp(galaxy.maxOrbit * 1.35, 15, 48);
+  // Frame the inner two-thirds; the legacy rim cropping out of frame
+  // reads cinematic and rewards zooming out.
+  const homeDistance = galaxy.isYoungSystem ? 24 : clamp(galaxy.maxOrbit * 1.0, 15, 75);
   const maxDistance = Math.max(galaxy.maxOrbit * 2.5, 40);
   const minDistance = galaxy.starRadius + 3.5;
 
@@ -63,7 +67,15 @@ export function CameraRig() {
       prevSelected.current = selectedRepoId;
     }
 
-    if (selectedPlanet) {
+    if (starFocused) {
+      // Sun visit: ease in toward the photosphere along the current view.
+      returning.current = false;
+      const viewDistance = galaxy.starRadius * 3.2 + 4.5;
+      offsetDir.current.copy(state.camera.position).normalize();
+      desired.current.copy(offsetDir.current).multiplyScalar(viewDistance);
+      easing.damp3(c.target, [0, 0, 0], 0.4, delta);
+      easing.damp3(state.camera.position, desired.current, 0.55, delta);
+    } else if (selectedPlanet) {
       returning.current = false;
       // The planet keeps orbiting while focused, so recompute its position
       // with the same pure formula Planet.tsx uses and chase it smoothly.
@@ -97,7 +109,8 @@ export function CameraRig() {
     // clock; onStart and onEnd only flip the interaction flag.
     idleFor.current = interacting.current ? 0 : idleFor.current + delta;
     const idle = idleFor.current > IDLE_DELAY;
-    c.autoRotate = idle && !selectedPlanet && !returning.current && !reducedMotion;
+    c.autoRotate =
+      idle && !selectedPlanet && !starFocused && !returning.current && !reducedMotion;
   });
 
   return (

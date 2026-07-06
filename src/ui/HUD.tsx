@@ -1,8 +1,61 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { formatCount } from '../lib/format';
-import { useGalaxyStore } from '../state/store';
+import { STAR_ID, useGalaxyStore } from '../state/store';
 import { Legend } from './Legend';
 import { RepoPanel } from './RepoPanel';
+import { StarPanel } from './StarPanel';
+
+const TOUR_STOP_MS = 5200;
+
+/**
+ * Guided tour: fly the camera through the largest planets and finish
+ * on the star. Any manual selection change cancels it, so a click
+ * anywhere hands control straight back to the visitor.
+ */
+function useTour(): { touring: boolean; toggleTour: () => void } {
+  const galaxy = useGalaxyStore((s) => s.galaxy);
+  const selectRepo = useGalaxyStore((s) => s.selectRepo);
+  const selectedRepoId = useGalaxyStore((s) => s.selectedRepoId);
+  const [touring, setTouring] = useState(false);
+  const expected = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!touring) return;
+    const stops = [...galaxy.planets]
+      .sort((a, b) => b.radius - a.radius)
+      .slice(0, 4)
+      .map((p) => p.repoId);
+    stops.push(STAR_ID);
+    let index = 0;
+    expected.current = stops[0];
+    selectRepo(stops[0]);
+    const timer = window.setInterval(() => {
+      index += 1;
+      if (index >= stops.length) {
+        expected.current = null;
+        selectRepo(null);
+        setTouring(false);
+        return;
+      }
+      expected.current = stops[index];
+      selectRepo(stops[index]);
+    }, TOUR_STOP_MS);
+    return () => window.clearInterval(timer);
+  }, [touring, galaxy, selectRepo]);
+
+  useEffect(() => {
+    if (touring && selectedRepoId !== expected.current) setTouring(false);
+  }, [touring, selectedRepoId]);
+
+  const toggleTour = () =>
+    setTouring((wasTouring) => {
+      // Nothing to visit in an empty galaxy.
+      if (!wasTouring && galaxy.planets.length === 0) return wasTouring;
+      return !wasTouring;
+    });
+
+  return { touring, toggleTour };
+}
 
 /**
  * Grab the rendered canvas as a PNG download and put ready-to-paste
@@ -66,6 +119,7 @@ export function HUD() {
   const selectedRepoId = useGalaxyStore((s) => s.selectedRepoId);
   const [username, setUsername] = useState('');
   const [snapNote, setSnapNote] = useState<string | null>(null);
+  const { touring, toggleTour } = useTour();
 
   useEffect(() => {
     if (!snapNote) return;
@@ -157,13 +211,19 @@ export function HUD() {
 
       <Legend />
       <RepoPanel />
+      <StarPanel />
 
       {isYoungSystem && (
         <p className="hud-caption">A young system. The voyage is just beginning.</p>
       )}
 
-      {!selectedRepoId && (
-        <p className="hud-hint">drag to orbit · scroll to zoom · click a planet</p>
+      {(!selectedRepoId || touring) && (
+        <p className="hud-hint">
+          drag to orbit · scroll to zoom · click a planet ·{' '}
+          <button className="hud-hint-button" type="button" onClick={toggleTour}>
+            {touring ? 'stop the tour' : 'take the tour'}
+          </button>
+        </p>
       )}
     </div>
   );

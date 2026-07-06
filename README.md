@@ -56,9 +56,9 @@ URL parameters: `?u=<login>` deep-links to a profile; `&snap` hides the interfac
 
 ## How the mapping works
 
-Every visual maps to a real metric. A repository is a planet: its size follows stars (log scaled and normalized against your own top repo, so small profiles still read well), its tint is GitHub's color for the primary language, moons are forks, and rings appear on highly starred repos. Orbit distance follows repo age, newest close in, so the system reads chronologically from the center outward, and each planet traces a faint orbit guide. The central star is you: its size and glow follow followers. Forked and archived repos are excluded by default, and only the top 60 repos become full planets; the rest render as faint distant specks. Space Shuttle Discovery cruises the system on a seeded route; it measures nothing and stays anyway.
+Every visual maps to a real metric. A repository is a planet: its size follows stars (log scaled and normalized against your own top repo, so small profiles still read well), its tint is GitHub's color for the primary language, moons are forks, and rings appear on highly starred repos. Repos pushed within the last six months glow with city lights on their night side, fading as they go quiet. Orbit distance follows repo age, newest close in, and spacing adapts to each planet's rings and moons so neighbors never collide. The central star is you: its size and glow follow followers, and clicking it opens whole-profile stats. Forked and archived repos are excluded by default, and only the top 60 repos become full planets; the rest render as faint distant specks. Space Shuttle Discovery cruises the system on a seeded route; it measures nothing and stays anyway.
 
-Controls: drag to orbit, scroll to zoom, click a planet for details, click empty space to return. The camera drifts on its own after a few idle seconds.
+Controls: drag to orbit, scroll to zoom, click a planet for details, click the star for profile stats, click empty space to return. "Take the tour" flies the camera through the biggest worlds and ends on the star; any click hands control back. The camera drifts on its own after a few idle seconds, and the occasional meteor is just for you.
 
 ## Determinism
 

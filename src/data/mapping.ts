@@ -16,8 +16,8 @@ export interface MappingConfig {
   maxPlanetRadius: number;
   /** Distance of the newest repo's orbit from the star. */
   innerOrbit: number;
-  /** Spacing between consecutive orbits. */
-  orbitGap: number;
+  /** Minimum clear space between neighboring orbits' visual envelopes. */
+  orbitPadding: number;
   /** Star-normalized threshold (0..1) above which a planet earns rings. */
   ringThreshold: number;
   maxMoons: number;
@@ -27,10 +27,10 @@ export const DEFAULT_MAPPING: MappingConfig = {
   includeForks: false,
   includeArchived: false,
   maxPlanets: 60,
-  minPlanetRadius: 0.42,
-  maxPlanetRadius: 1.5,
+  minPlanetRadius: 0.38,
+  maxPlanetRadius: 1.15,
   innerOrbit: 6,
-  orbitGap: 2.4,
+  orbitPadding: 0.75,
   ringThreshold: 0.58,
   maxMoons: 5,
 };
@@ -75,6 +75,10 @@ export interface PlanetParams {
   color: string;
   /** Faint inner glow; stays under the bloom threshold. */
   emissiveIntensity: number;
+  /** 0..1 recency of the last push; drives night-side city lights. */
+  activity: number;
+  /** Radius of the planet's whole visual envelope (rings, moons). */
+  clearance: number;
   ring: RingParams | null;
   moons: MoonParams[];
 }
@@ -124,7 +128,7 @@ function buildMoons(
       // Kept small and tight so a five-moon planet reads as attended,
       // not cluttered.
       size: planetRadius * range(rng, 0.09, 0.15),
-      orbitRadius: planetRadius * (1.75 + i * 0.5) + range(rng, 0, 0.2),
+      orbitRadius: planetRadius * (1.6 + i * 0.42) + range(rng, 0, 0.15),
       speed: range(rng, 0.35, 0.9),
       phase: range(rng, 0, Math.PI * 2),
       inclination: range(rng, -0.6, 0.6),
@@ -160,50 +164,84 @@ export function buildGalaxy(
 
   // Age maps to orbital distance: newest repos orbit close in, the oldest
   // form the legacy rim, so the galaxy reads chronologically from center out.
-  // Rank order (not raw dates) guarantees even spacing with no collisions.
   const byAge = [...planetRepos].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
-  const orbitIndex = new Map(byAge.map((r, i) => [r.id, i]));
 
-  const planets: PlanetParams[] = planetRepos.map((repo) => {
+  // First pass: everything except the orbit, because spacing needs to
+  // know how wide each planet's envelope (rings, outermost moon) is.
+  const drafts = byAge.map((repo) => {
     const rng = rngFromString(`${profile.login}/${repo.name}`);
     const starNorm = logNorm(repo.stars, maxStars);
     const radius = Math.max(
       config.minPlanetRadius,
       lerp(config.minPlanetRadius, config.maxPlanetRadius, starNorm),
     );
-    const orbitA =
-      config.innerOrbit +
-      (orbitIndex.get(repo.id) ?? 0) * config.orbitGap +
-      range(rng, -0.35, 0.35);
     const hasRings = starNorm > config.ringThreshold && repo.stars >= 20;
+    const ring: RingParams | null = hasRings
+      ? {
+          // Thin and translucent per the style bible; density and
+          // brightness still rise with stars, just quietly.
+          innerRadius: radius * 1.65,
+          outerRadius: radius * lerp(2.05, 2.35, starNorm),
+          opacity: lerp(0.1, 0.26, starNorm),
+          inclination: range(rng, -0.5, 0.5),
+        }
+      : null;
+    const moons = buildMoons(repo, maxForks, radius, config, rng);
+    const lastMoon = moons[moons.length - 1];
+    // Tight but sufficient: the exact widest feature, no safety inflation,
+    // so density survives while overlap stays impossible.
+    const clearance = Math.max(
+      radius * 1.15,
+      ring ? ring.outerRadius : 0,
+      lastMoon ? lastMoon.orbitRadius + lastMoon.size : 0,
+    );
+
+    // Recency of the last push, 0 after half a year: recently active
+    // repos show city lights on their night side.
+    const daysSincePush = (now - new Date(repo.pushedAt).getTime()) / 86_400_000;
+    const activity = clamp(1 - daysSincePush / 180, 0, 1);
 
     return {
-      repoId: repo.id,
-      name: repo.name,
+      repo,
+      rng,
       radius,
+      ring,
+      moons,
+      clearance,
+      activity,
+      starNorm,
+      orbitJitter: range(rng, 0, 0.5),
+      ellipseRatio: range(rng, 0.95, 1.0),
+    };
+  });
+
+  // Second pass: cumulative placement. Each orbit clears the previous
+  // envelope plus its own plus padding, so neighbors can never clip,
+  // whatever their rings and moons span.
+  let cursor = config.innerOrbit;
+  const planets: PlanetParams[] = drafts.map((d) => {
+    const orbitA = cursor + d.clearance + d.orbitJitter;
+    cursor = orbitA + d.clearance + config.orbitPadding;
+    return {
+      repoId: d.repo.id,
+      name: d.repo.name,
+      radius: d.radius,
       orbitA,
-      orbitB: orbitA * range(rng, 0.95, 1.0),
-      inclination: range(rng, -0.22, 0.22),
-      initialAngle: range(rng, 0, Math.PI * 2),
-      orbitSpeed: (BASE_ORBIT_SPEED / Math.sqrt(orbitA)) * range(rng, 0.85, 1.15),
-      spinSpeed: range(rng, 0.06, 0.28),
-      color: languageColor(repo.language, repo.languageColor),
+      orbitB: orbitA * d.ellipseRatio,
+      inclination: range(d.rng, -0.22, 0.22),
+      initialAngle: range(d.rng, 0, Math.PI * 2),
+      orbitSpeed: (BASE_ORBIT_SPEED / Math.sqrt(orbitA)) * range(d.rng, 0.85, 1.15),
+      spinSpeed: range(d.rng, 0.06, 0.28),
+      color: languageColor(d.repo.language, d.repo.languageColor),
       // Brightness follows stars but stays well under the bloom threshold
       // so planets read as solid matte bodies, not light sources.
-      emissiveIntensity: lerp(0.08, 0.38, starNorm),
-      ring: hasRings
-        ? {
-            // Thin and translucent per the style bible; density and
-            // brightness still rise with stars, just quietly.
-            innerRadius: radius * 1.65,
-            outerRadius: radius * lerp(2.05, 2.35, starNorm),
-            opacity: lerp(0.1, 0.26, starNorm),
-            inclination: range(rng, -0.5, 0.5),
-          }
-        : null,
-      moons: buildMoons(repo, maxForks, radius, config, rng),
+      emissiveIntensity: lerp(0.08, 0.38, d.starNorm),
+      activity: d.activity,
+      clearance: d.clearance,
+      ring: d.ring,
+      moons: d.moons,
     };
   });
 

@@ -7,6 +7,9 @@ import type { Profile, ProfileSource } from '../data/types';
 
 export type LoadStatus = 'idle' | 'loading' | 'error';
 
+/** Sentinel selection id for the central star (the profile itself). */
+export const STAR_ID = '__you__';
+
 interface GalaxyState {
   profile: Profile;
   /** Derived once per profile so the scene stays a pure read of state. */
