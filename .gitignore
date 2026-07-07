@@ -1,7 +1,23 @@
+# Dependencies
 node_modules
+
+# Build output
 dist
 widget-out
+
+# Secrets / local env
 .env
 .env.local
 *.local
 .DS_Store
+
+# Build & tooling config (presenting source only)
+vite.config.ts
+tsconfig.json
+eslint.config.js
+.prettierrc
+.prettierignore
+package-lock.json
+
+# CI
+.github
